@@ -15,8 +15,8 @@ class AdminMenu(private val eventManager: EventManager) {
 
             when (readln()) {
                 "1" -> showViewEventsMenu()
-                "2" -> println("Add Event - Coming soon")
-                "3" -> println("Modify Event - Coming soon")
+                "2" -> eventManager.addEvent()
+                "3" -> eventManager.modifyEvent()
                 "4" -> println("Cancel Event - Coming soon")
                 "5" -> return
                 else -> println("Invalid choice. Please try again.")
