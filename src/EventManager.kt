@@ -3,6 +3,24 @@ import java.time.LocalTime
 
 class EventManager {
 
+    val reservations = mutableListOf(
+        Reservation(
+            1,
+            "Alice Brown",
+            1
+        ),
+        Reservation(
+            2,
+            "David Green",
+            1
+        ),
+        Reservation(
+            3,
+            "Sarah Jones",
+            2
+        )
+    )
+
     val events = mutableListOf(
         Event(
             1,
@@ -345,5 +363,73 @@ class EventManager {
 
         println()
         println("Event updated successfully.")
+    }
+
+    fun cancelEvent() {
+        println()
+        println("========== CANCEL COMMUNITY EVENT ==========")
+
+        displayEvents(events)
+
+        print("Enter the Event ID you want to cancel: ")
+        val eventId = readln().toIntOrNull()
+
+        if (eventId == null) {
+            println("Error: Please enter a valid Event ID.")
+            return
+        }
+
+        val event = events.find { it.id == eventId }
+
+        if (event == null) {
+            println("Error: Event not found.")
+            return
+        }
+
+        when (event.getStatus()) {
+
+            EventStatus.CANCELLED -> {
+                println("Error: This event is already cancelled.")
+                return
+            }
+
+            EventStatus.COMPLETED -> {
+                println("Error: Completed events cannot be cancelled.")
+                return
+            }
+
+            EventStatus.UPCOMING,
+            EventStatus.FULL -> {
+                print("Are you sure you want to cancel '${event.title}'? (Y/N): ")
+
+                val confirmation = readln().trim().uppercase()
+
+                if (confirmation != "Y") {
+                    println("Cancellation stopped.")
+                    return
+                }
+
+                event.cancelled = true
+
+                // Update active reservations for this event
+                var updatedReservations = 0
+
+                for (reservation in reservations) {
+                    if (
+                        reservation.eventId == event.id &&
+                        reservation.status == ReservationStatus.ACTIVE
+                    ) {
+                        reservation.status = ReservationStatus.EVENT_CANCELLED
+                        updatedReservations++
+                    }
+                }
+
+                println()
+                println("Event cancelled successfully.")
+                println("Event ID: ${event.id}")
+                println("Status: ${event.getStatus()}")
+                println("Reservations updated: $updatedReservations")
+            }
+        }
     }
 }
