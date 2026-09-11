@@ -9,7 +9,7 @@ enum class EventStatus {
 }
 
 class Event(
-    val id: Int,
+    val id: String,
     var title: String,
     var category: String,
     var organiser: String,
@@ -17,19 +17,18 @@ class Event(
     var time: LocalTime,
     var location: String,
     var maxCapacity: Int,
-    var reservationCount: Int = 0,
-    var cancelled: Boolean = false
+    var initialStatus: EventStatus
 ) {
-    fun getRemainingCapacity(): Int {
-        return maxCapacity - reservationCount
-    }
-
-    fun getStatus(): EventStatus {
+    fun getStatus(activeReservations: Int): EventStatus {
         return when {
-            cancelled -> EventStatus.CANCELLED
-            date.isBefore(LocalDate.now()) -> EventStatus.COMPLETED
-            getRemainingCapacity() <= 0 -> EventStatus.FULL
+            initialStatus == EventStatus.CANCELLED -> EventStatus.CANCELLED
+            initialStatus == EventStatus.COMPLETED -> EventStatus.COMPLETED
+            activeReservations >= maxCapacity -> EventStatus.FULL
             else -> EventStatus.UPCOMING
         }
+    }
+
+    fun getRemainingCapacity(activeReservations: Int): Int {
+        return maxCapacity - activeReservations
     }
 }

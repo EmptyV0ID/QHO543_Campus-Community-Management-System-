@@ -3,73 +3,123 @@ import java.time.LocalTime
 
 class EventManager {
 
+    // --------------------------------
+    // Data provided for the task
+    // --------------------------------
+
     val reservations = mutableListOf(
-        Reservation(
-            1,
-            "Alice Brown",
-            1
-        ),
-        Reservation(
-            2,
-            "David Green",
-            1
-        ),
-        Reservation(
-            3,
-            "Sarah Jones",
-            2
-        )
+        Reservation("R001", "S001", "E001", ReservationStatus.ACTIVE),
+        Reservation("R002", "S002", "E001", ReservationStatus.ACTIVE),
+        Reservation("R003", "S003", "E001", ReservationStatus.USER_CANCELLED),
+
+        Reservation("R004", "S001", "E002", ReservationStatus.ACTIVE),
+        Reservation("R005", "S002", "E002", ReservationStatus.ACTIVE),
+        Reservation("R006", "S004", "E002", ReservationStatus.ACTIVE),
+        Reservation("R007", "S005", "E002", ReservationStatus.ACTIVE),
+
+        Reservation("R008", "S006", "E003", ReservationStatus.ACTIVE),
+
+        Reservation("R009", "S001", "E004", ReservationStatus.COMPLETED),
+        Reservation("R010", "S003", "E004", ReservationStatus.COMPLETED),
+
+        Reservation("R011", "S004", "E005", ReservationStatus.COMPLETED),
+        Reservation("R012", "S005", "E005", ReservationStatus.USER_CANCELLED),
+
+        Reservation("R013", "S002", "E006", ReservationStatus.EVENT_CANCELLED),
+        Reservation("R014", "S006", "E006", ReservationStatus.EVENT_CANCELLED)
     )
+
+    // --------------------------
+    // Event data
+    // --------------------------
 
     val events = mutableListOf(
         Event(
-            1,
-            "Welcome Party",
-            "Social",
-            "Student Union",
-            LocalDate.of(2026, 10, 5),
-            LocalTime.of(18, 0),
-            "Main Hall",
-            100,
-            45
+            id = "E001",
+            title = "Python Coding Workshop",
+            category = "Academic",
+            organiser = "Helen Moore",
+            date = LocalDate.of(2026, 10, 14),
+            time = LocalTime.of(14, 0),
+            location = "Computing Lab B12",
+            maxCapacity = 6,
+            initialStatus = EventStatus.UPCOMING
         ),
+
         Event(
-            2,
-            "Kotlin Workshop",
-            "Academic",
-            "Computing Society",
-            LocalDate.of(2026, 10, 15),
-            LocalTime.of(14, 0),
-            "Computer Lab 2",
-            30,
-            18
+            id = "E002",
+            title = "Five-a-Side Football",
+            category = "Sports",
+            organiser = "Alex Turner",
+            date = LocalDate.of(2026, 10, 16),
+            time = LocalTime.of(17, 0),
+            location = "Sports Hall",
+            maxCapacity = 4,
+            initialStatus = EventStatus.UPCOMING
         ),
+
         Event(
-            3,
-            "Five-a-Side Football",
-            "Sports",
-            "University Sports Club",
-            LocalDate.of(2026, 11, 2),
-            LocalTime.of(16, 30),
-            "University Sports Ground",
-            20,
-            20
+            id = "E003",
+            title = "Careers in Technology",
+            category = "Careers",
+            organiser = "Rachel Adams",
+            date = LocalDate.of(2026, 10, 20),
+            time = LocalTime.of(13, 0),
+            location = "Lecture Hall 2",
+            maxCapacity = 6,
+            initialStatus = EventStatus.UPCOMING
         ),
+
         Event(
-            4,
-            "Summer Charity Fair",
-            "Charity",
-            "Student Volunteers",
-            LocalDate.of(2026, 7, 10),
-            LocalTime.of(12, 0),
-            "University Courtyard",
-            150,
-            87
+            id = "E004",
+            title = "Student Wellbeing Workshop",
+            category = "Wellbeing",
+            organiser = "Sarah Lewis",
+            date = LocalDate.of(2026, 10, 5),
+            time = LocalTime.of(11, 0),
+            location = "Room C05",
+            maxCapacity = 5,
+            initialStatus = EventStatus.COMPLETED
+        ),
+
+        Event(
+            id = "E005",
+            title = "Community Volunteering Day",
+            category = "Volunteering",
+            organiser = "James Wilson",
+            date = LocalDate.of(2026, 10, 2),
+            time = LocalTime.of(9, 0),
+            location = "Community Hub",
+            maxCapacity = 6,
+            initialStatus = EventStatus.COMPLETED
+        ),
+
+        Event(
+            id = "E006",
+            title = "International Students Social",
+            category = "Social",
+            organiser = "Maria Costa",
+            date = LocalDate.of(2026, 10, 18),
+            time = LocalTime.of(18, 0),
+            location = "Student Union",
+            maxCapacity = 5,
+            initialStatus = EventStatus.CANCELLED
         )
     )
 
+    // --------------------------------
+    // Reservation calculation
+    // --------------------------------
+
+    private fun getActiveReservationCount(eventId: String): Int {
+        return reservations.count {
+            it.eventId == eventId &&
+                    it.status == ReservationStatus.ACTIVE
+        }
+    }
+
     // -------------------------
-    // TASK 4 - VIEW EVENTS
+    // Event viewing
     // -------------------------
 
     fun viewAllEvents() {
@@ -78,8 +128,11 @@ class EventManager {
 
     fun viewUpcomingEvents() {
         val upcomingEvents = events.filter {
-            it.getStatus() == EventStatus.UPCOMING ||
-                    it.getStatus() == EventStatus.FULL
+            val activeReservations = getActiveReservationCount(it.id)
+            val status = it.getStatus(activeReservations)
+
+            status == EventStatus.UPCOMING ||
+                    status == EventStatus.FULL
         }
 
         displayEvents(upcomingEvents)
@@ -87,7 +140,9 @@ class EventManager {
 
     fun viewCompletedEvents() {
         val completedEvents = events.filter {
-            it.getStatus() == EventStatus.COMPLETED
+            val activeReservations = getActiveReservationCount(it.id)
+
+            it.getStatus(activeReservations) == EventStatus.COMPLETED
         }
 
         displayEvents(completedEvents)
@@ -95,7 +150,9 @@ class EventManager {
 
     fun viewCancelledEvents() {
         val cancelledEvents = events.filter {
-            it.getStatus() == EventStatus.CANCELLED
+            val activeReservations = getActiveReservationCount(it.id)
+
+            it.getStatus(activeReservations) == EventStatus.CANCELLED
         }
 
         displayEvents(cancelledEvents)
@@ -109,6 +166,9 @@ class EventManager {
         }
 
         for (event in eventList) {
+
+            val activeReservations = getActiveReservationCount(event.id)
+
             println()
             println("--------------------------------------")
             println("Event ID: ${event.id}")
@@ -119,15 +179,18 @@ class EventManager {
             println("Time: ${event.time}")
             println("Location: ${event.location}")
             println("Maximum Capacity: ${event.maxCapacity}")
-            println("Reservations: ${event.reservationCount}")
-            println("Remaining Capacity: ${event.getRemainingCapacity()}")
-            println("Status: ${event.getStatus()}")
+            println("Reservations: $activeReservations")
+            println(
+                "Remaining Capacity: " +
+                        event.getRemainingCapacity(activeReservations)
+            )
+            println("Status: ${event.getStatus(activeReservations)}")
             println("--------------------------------------")
         }
     }
 
     // -------------------------
-    // TASK 5 - ADD EVENT
+    // Adding event
     // -------------------------
 
     fun addEvent() {
@@ -155,7 +218,6 @@ class EventManager {
         print("Enter maximum capacity: ")
         val capacityInput = readln().trim()
 
-        // Check that text fields are not empty
         if (
             title.isBlank() ||
             category.isBlank() ||
@@ -166,7 +228,6 @@ class EventManager {
             return
         }
 
-        // Convert and validate the date
         val date = try {
             LocalDate.parse(dateInput)
         } catch (e: Exception) {
@@ -174,7 +235,6 @@ class EventManager {
             return
         }
 
-        // Convert and validate the time
         val time = try {
             LocalTime.parse(timeInput)
         } catch (e: Exception) {
@@ -182,7 +242,6 @@ class EventManager {
             return
         }
 
-        // Convert and validate maximum capacity
         val maxCapacity = capacityInput.toIntOrNull()
 
         if (maxCapacity == null || maxCapacity <= 0) {
@@ -190,14 +249,14 @@ class EventManager {
             return
         }
 
-        // Generate the next available event ID
-        val newId = if (events.isEmpty()) {
-            1
-        } else {
-            events.maxOf { it.id } + 1
-        }
+        val highestIdNumber = events.maxOfOrNull {
+            it.id.removePrefix("E").toIntOrNull() ?: 0
+        } ?: 0
 
-        // Create the new Event object
+        val newId = "E" + (highestIdNumber + 1)
+            .toString()
+            .padStart(3, '0')
+
         val newEvent = Event(
             id = newId,
             title = title,
@@ -206,10 +265,10 @@ class EventManager {
             date = date,
             time = time,
             location = location,
-            maxCapacity = maxCapacity
+            maxCapacity = maxCapacity,
+            initialStatus = EventStatus.UPCOMING
         )
 
-        // Store the new event
         events.add(newEvent)
 
         println()
@@ -217,22 +276,22 @@ class EventManager {
         println("New Event ID: ${newEvent.id}")
     }
 
+    // -------------------------
+    // Modifying event
+    // -------------------------
+
     fun modifyEvent() {
         println()
         println("========== MODIFY COMMUNITY EVENT ==========")
 
-        // Show the administrator the available events first
         displayEvents(events)
 
         print("Enter the Event ID you want to modify: ")
-        val eventId = readln().toIntOrNull()
+        val eventId = readln().trim().uppercase()
 
-        if (eventId == null) {
-            println("Error: Please enter a valid Event ID.")
-            return
+        val event = events.find {
+            it.id == eventId
         }
-
-        val event = events.find { it.id == eventId }
 
         if (event == null) {
             println("Error: Event not found.")
@@ -339,10 +398,14 @@ class EventManager {
                     return
                 }
 
-                if (newCapacity < event.reservationCount) {
+                val activeReservations =
+                    getActiveReservationCount(event.id)
+
+                if (newCapacity < activeReservations) {
                     println(
                         "Error: Capacity cannot be lower than the current " +
-                                "number of reservations (${event.reservationCount})."
+                                "number of active reservations " +
+                                "($activeReservations)."
                     )
                     return
                 }
@@ -365,6 +428,10 @@ class EventManager {
         println("Event updated successfully.")
     }
 
+    // -------------------------
+    // Event cancellation
+    // -------------------------
+
     fun cancelEvent() {
         println()
         println("========== CANCEL COMMUNITY EVENT ==========")
@@ -372,21 +439,21 @@ class EventManager {
         displayEvents(events)
 
         print("Enter the Event ID you want to cancel: ")
-        val eventId = readln().toIntOrNull()
+        val eventId = readln().trim().uppercase()
 
-        if (eventId == null) {
-            println("Error: Please enter a valid Event ID.")
-            return
+        val event = events.find {
+            it.id == eventId
         }
-
-        val event = events.find { it.id == eventId }
 
         if (event == null) {
             println("Error: Event not found.")
             return
         }
 
-        when (event.getStatus()) {
+        val activeReservations =
+            getActiveReservationCount(event.id)
+
+        when (event.getStatus(activeReservations)) {
 
             EventStatus.CANCELLED -> {
                 println("Error: This event is already cancelled.")
@@ -400,26 +467,33 @@ class EventManager {
 
             EventStatus.UPCOMING,
             EventStatus.FULL -> {
-                print("Are you sure you want to cancel '${event.title}'? (Y/N): ")
 
-                val confirmation = readln().trim().uppercase()
+                print(
+                    "Are you sure you want to cancel " +
+                            "'${event.title}'? (Y/N): "
+                )
+
+                val confirmation =
+                    readln().trim().uppercase()
 
                 if (confirmation != "Y") {
                     println("Cancellation stopped.")
                     return
                 }
 
-                event.cancelled = true
+                event.initialStatus = EventStatus.CANCELLED
 
-                // Update active reservations for this event
                 var updatedReservations = 0
 
                 for (reservation in reservations) {
+
                     if (
                         reservation.eventId == event.id &&
                         reservation.status == ReservationStatus.ACTIVE
                     ) {
-                        reservation.status = ReservationStatus.EVENT_CANCELLED
+                        reservation.status =
+                            ReservationStatus.EVENT_CANCELLED
+
                         updatedReservations++
                     }
                 }
@@ -427,8 +501,16 @@ class EventManager {
                 println()
                 println("Event cancelled successfully.")
                 println("Event ID: ${event.id}")
-                println("Status: ${event.getStatus()}")
-                println("Reservations updated: $updatedReservations")
+                println(
+                    "Status: ${
+                        event.getStatus(
+                            getActiveReservationCount(event.id)
+                        )
+                    }"
+                )
+                println(
+                    "Reservations updated: $updatedReservations"
+                )
             }
         }
     }

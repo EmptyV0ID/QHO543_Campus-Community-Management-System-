@@ -1,12 +1,13 @@
 enum class ReservationStatus {
     ACTIVE,
     USER_CANCELLED,
-    EVENT_CANCELLED
+    EVENT_CANCELLED,
+    COMPLETED
 }
 
 class Reservation(
-    val id: Int,
-    val studentName: String,
-    val eventId: Int,
-    var status: ReservationStatus = ReservationStatus.ACTIVE
+    val id: String,
+    val studentId: String,
+    val eventId: String,
+    var status: ReservationStatus
 )
